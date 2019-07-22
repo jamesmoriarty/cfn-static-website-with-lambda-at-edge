@@ -1,6 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
 Parameters:
+  Nonce:
+    Type: String
+    Description: Random value used to trigger edge lambda update.
+
   WebsiteRoute53HostedZoneName:
     Type: String
     Description: The DNS name of an existing Amazon Route 53 hosted zone e.g. jamesmoriarty.xyz
@@ -17,6 +21,16 @@ Parameters:
     Type: String
     Description: the Amazon Resource Name (ARN) of an AWS Certificate Manager (ACM) certificate.
     AllowedPattern: 'arn:aws:acm:.*'
+
+Outputs:
+  WebsiteS3BucketName:
+    Value: !Ref WebsiteS3Bucket
+
+  WebsiteCloudfrontDistributionDomainName:
+    Value: !GetAtt [WebsiteCloudfrontDistribution, DomainName]
+
+  WebsiteDomainName:
+    Value: !Ref WebsiteRoute53DomainName
 
 Mappings:
   RegionMap:
@@ -41,7 +55,7 @@ Resources:
   WebsiteS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref WebsiteRoute53DomainName
+      BucketName: !Join ['', [!Ref 'AWS::AccountId', '-', !Ref 'AWS::Region', '-', !Ref WebsiteRoute53DomainName]]
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
@@ -89,6 +103,9 @@ Resources:
             Cookies:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
+          LambdaFunctionAssociations:
+          - EventType: viewer-request
+            LambdaFunctionARN: !GetAtt EdgeLambdaVersion.FunctionArn
         PriceClass: PriceClass_All
         ViewerCertificate:
           AcmCertificateArn: !Ref WebsiteCloudfrontDistributionAcmCertificateArn
@@ -105,12 +122,93 @@ Resources:
           HostedZoneId: Z2FDTNDATAQYW2 # Cloudfront HostedZoneId https://docs.aws.amazon.com/general/latest/gr/rande.html
           DNSName: !GetAtt [WebsiteCloudfrontDistribution, DomainName]
 
-Outputs:
-  WebsiteS3BucketName:
-    Value: !Ref WebsiteS3Bucket
+  EdgeLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !GetAtt EdgeLambdaRole.Arn
+      Runtime: nodejs8.10
+      Handler: index.handler
+      Code:
+        ZipFile: |
+          exports.handler = (event, ctx, cb) => {
+            clientRequest = event.Records[0].cf.request
 
-  WebsiteCloudfrontDistributionDomainName:
-    Value: !GetAtt [WebsiteCloudfrontDistribution, DomainName]
+            if (clientRequest.uri === '/edgelambda') {
+              const status = '200'
+              const headers = {
+                'content-type': [{
+                  key: 'Content-Type',
+                  value: 'application/json'
+                }]
+              }
+              const body = JSON.stringify(event, null, 2)
+              const response = {status, headers, body}
+              cb(null, response)
+            } else {
+              cb(null, clientRequest)
+            }
+          }
 
-  WebsiteDomainName:
-    Value: !Ref WebsiteRoute53DomainName
+  EdgeLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - edgelambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  EdgeLambdaVersion:
+    Type: Custom::LatestLambdaVersion
+    Properties:
+      ServiceToken: !GetAtt PublishLambdaVersion.Arn
+      FunctionName: !Ref EdgeLambda
+      Nonce: !Ref Nonce # Custom resource for getting latest version of a lambda, as required by CloudFront. https://stackoverflow.com/questions/41452274/how-to-create-a-new-version-of-a-lambda-function-using-cloudformation
+
+  PublishLambdaVersion:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs8.10
+      Role: !GetAtt PublishLambdaVersionRole.Arn
+      Code:
+        ZipFile: |
+          const {Lambda} = require('aws-sdk')
+          const {send, SUCCESS, FAILED} = require('cfn-response')
+          const lambda = new Lambda()
+          exports.handler = (event, context) => {
+            const {RequestType, ResourceProperties: {FunctionName}} = event
+            if (RequestType == 'Delete') return send(event, context, SUCCESS)
+            lambda.publishVersion({FunctionName}, (err, {FunctionArn}) => {
+              err
+                ? send(event, context, FAILED, err)
+                : send(event, context, SUCCESS, {FunctionArn})
+            })
+          }
+
+  PublishLambdaVersionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: PublishVersion
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: lambda:PublishVersion
+            Resource: '*'
