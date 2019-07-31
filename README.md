@@ -2,6 +2,10 @@
 
 Static website hosted in S3 Bucket delivered via Cloudfront with Edge Lambda.
 
+|Branch |Domain           |Status                         |
+|-------|-----------------|-------------------------------|
+|master |jamesmoriarty.xyz|[![master build status][1]][2] |
+
 ## Deploy
 
 ```
@@ -11,3 +15,6 @@ WEBSITE_HOSTED_ZONE=jamesmoriarty.xyz \
 WEBSITE_DOMAIN=jamesmoriarty.xyz \
     bin/deploy
 ```
+
+[1]: https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoieFZ4TG1JeHVtNVM1ZVlJVmRQbFlSSHduRzJ2ZCtBaHBTWVFlako0STFVbUFlckNRZ2RBYTVWa2pVVkVkVUNRVTB3NU4zRkpFcGpTdGI5YVlMWGJTQVJnPSIsIml2UGFyYW1ldGVyU3BlYyI6IlB3MEMvc0NrTUtQTWhOM2siLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master
+[2]: https://console.aws.amazon.com/codesuite/codebuild/projects/jamesmoriarty/history?region=us-east-1
