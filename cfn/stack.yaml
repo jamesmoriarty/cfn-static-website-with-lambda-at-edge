@@ -22,6 +22,28 @@ Parameters:
     Description: the Amazon Resource Name (ARN) of an AWS Certificate Manager (ACM) certificate.
     AllowedPattern: 'arn:aws:acm:.*'
 
+  EdgeLambdaCode:
+    Type: String
+    Default: |
+          exports.handler = (event, ctx, cb) => {
+            clientRequest = event.Records[0].cf.request
+
+            if (clientRequest.uri === '/edgelambda') {
+              const status = '200'
+              const headers = {
+                'content-type': [{
+                  key: 'Content-Type',
+                  value: 'application/json'
+                }]
+              }
+              const body = JSON.stringify(event, null, 2)
+              const response = {status, headers, body}
+              cb(null, response)
+            } else {
+              cb(null, clientRequest)
+            }
+          }
+
 Outputs:
   WebsiteS3BucketName:
     Value: !Ref WebsiteS3Bucket
@@ -132,25 +154,7 @@ Resources:
       Runtime: nodejs8.10
       Handler: index.handler
       Code:
-        ZipFile: |
-          exports.handler = (event, ctx, cb) => {
-            clientRequest = event.Records[0].cf.request
-
-            if (clientRequest.uri === '/edgelambda') {
-              const status = '200'
-              const headers = {
-                'content-type': [{
-                  key: 'Content-Type',
-                  value: 'application/json'
-                }]
-              }
-              const body = JSON.stringify(event, null, 2)
-              const response = {status, headers, body}
-              cb(null, response)
-            } else {
-              cb(null, clientRequest)
-            }
-          }
+        ZipFile: !Ref EdgeLambdaCode
 
   EdgeLambdaRole:
     Type: AWS::IAM::Role
