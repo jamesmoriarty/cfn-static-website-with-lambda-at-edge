@@ -1,6 +1,8 @@
 # cfn-static-website-with-edge-lambda
 
-Static website hosted in S3 Bucket delivered via Cloudfront with Edge Lambda.
+Static website hosted from an S3 Bucket delivered via Cloudfront with Edge Lambda.
+
+## Status
 
 |Branch |Domain           |Status                         |
 |-------|-----------------|-------------------------------|
