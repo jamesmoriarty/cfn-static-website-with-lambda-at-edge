@@ -1,0 +1,16 @@
+version: 0.2
+
+env:
+  variables:
+    STACK_NAME: jamesmoriartyxyz
+    WEBSITE_HOSTED_ZONE: jamesmoriarty.xyz
+    WEBSITE_DOMAIN: jamesmoriarty.xyz
+    WEBSITE_CERT_ARN: arn:aws:acm:us-east-1:467230181896:certificate/0c8c0f85-f68d-4063-abf2-3462a6a8a714
+
+phases:
+  install:
+    runtime-versions:
+      docker: 18
+  build:
+    commands:
+      - bin/deploy
