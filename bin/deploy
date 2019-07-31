@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+set -u
+set -x
+
+aws cloudformation deploy \
+  --region us-east-1 \
+  --capabilities CAPABILITY_IAM \
+  --template-file cfn/stack.yaml \
+  --stack-name $STACK_NAME \
+  --parameter-overrides \
+    WebsiteRoute53HostedZoneName=$WEBSITE_HOSTED_ZONE \
+    WebsiteRoute53DomainName=$WEBSITE_DOMAIN \
+    WebsiteCloudfrontDistributionAcmCertificateArn=$WEBSITE_CERT_ARN \
+    Nonce=$(date | base64)
+
+BUCKET_NAME=$(aws cloudformation describe-stacks --region us-east-1 --stack-name=$STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='WebsiteS3BucketName'].OutputValue" --output text)
+
+aws s3 sync public s3://$BUCKET_NAME
+
+DISTRIBUTION_ID=$(aws cloudformation describe-stacks --region us-east-1 --stack-name=$STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='WebsiteCloudfrontDistribution'].OutputValue" --output text)
+
+aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths '/*' 

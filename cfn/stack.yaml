@@ -25,6 +25,9 @@ Parameters:
 Outputs:
   WebsiteS3BucketName:
     Value: !Ref WebsiteS3Bucket
+    
+  WebsiteCloudfrontDistribution:
+    Value: !Ref WebsiteCloudfrontDistribution
 
   WebsiteCloudfrontDistributionDomainName:
     Value: !GetAtt [WebsiteCloudfrontDistribution, DomainName]
@@ -55,7 +58,7 @@ Resources:
   WebsiteS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Join ['', [!Ref 'AWS::AccountId', '-', !Ref 'AWS::Region', '-', !Ref WebsiteRoute53DomainName]]
+      BucketName: !Join ['', [!Ref 'AWS::AccountId', '-', !Ref 'AWS::Region', '-', !Ref 'AWS::StackName']]
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
