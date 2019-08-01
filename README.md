@@ -4,15 +4,21 @@ Static website hosted from an S3 Bucket delivered via Cloudfront with Edge Lambd
 
 ## Status
 
-|Branch|Domain                               |Status                        |
-|------|-------------------------------------|------------------------------|
-|master|lambdaedge.examples.jamesmoriarty.xyz|[![master build status][1]][2]|
+|Branch|Domain                                    |Status                        |
+|------|------------------------------------------|------------------------------|
+|master|[lambdaedge.examples.jamesmoriarty.xyz][1]|[![master build status][2]][3]|
 
 ## Routes
 
-> /edgelambda
+> /
 
-Returns handler `event` as json.
+Returns index.html.
+
+## Query
+
+> debug
+
+Returns `viewer-request` object as json.
 
 ## Deploy
 
@@ -24,5 +30,6 @@ WEBSITE_DOMAIN=lambdaedge.examples.jamesmoriarty.xyz \
     bin/deploy
 ```
 
-[1]: https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiSUVLT3pLMHYvRVFFSHRmM21sd0ZNczRoOXdEejBsMTQ5eUwrYmh5N0hMczNsL0QxOFhtWmFKdytrVEltcDcrZERCN0Z0VWVlNjU4c09pbUhqU2NkckVrPSIsIml2UGFyYW1ldGVyU3BlYyI6ImhMU3pnQWRVMzNobWt3MXgiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master
-[2]: https://console.aws.amazon.com/codesuite/codebuild/projects/examples-edgelambda/history
+[1]: https://lambdaedge.examples.jamesmoriarty.xyz
+[2]: https://codebuild.us-east-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoiSUVLT3pLMHYvRVFFSHRmM21sd0ZNczRoOXdEejBsMTQ5eUwrYmh5N0hMczNsL0QxOFhtWmFKdytrVEltcDcrZERCN0Z0VWVlNjU4c09pbUhqU2NkckVrPSIsIml2UGFyYW1ldGVyU3BlYyI6ImhMU3pnQWRVMzNobWt3MXgiLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=master
+[3]: https://console.aws.amazon.com/codesuite/codebuild/projects/examples-edgelambda/history

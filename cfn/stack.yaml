@@ -28,7 +28,7 @@ Parameters:
           exports.handler = (event, ctx, cb) => {
             clientRequest = event.Records[0].cf.request
 
-            if (clientRequest.uri === '/edgelambda') {
+            if (clientRequest.querystring.split(/\&/).includes('debug')) {
               const status = '200'
               const headers = {
                 'content-type': [{
