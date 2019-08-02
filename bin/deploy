@@ -4,16 +4,20 @@ set -e
 set -u
 set -x
 
+IFS='@'
+
 aws cloudformation deploy \
+  --no-fail-on-empty-changeset \
   --region us-east-1 \
   --capabilities CAPABILITY_IAM \
   --template-file cfn/stack.yaml \
   --stack-name $STACK_NAME \
   --parameter-overrides \
+    Nonce=$(date | base64) \
     WebsiteRoute53HostedZoneName=$WEBSITE_HOSTED_ZONE \
     WebsiteRoute53DomainName=$WEBSITE_DOMAIN \
     WebsiteCloudfrontDistributionAcmCertificateArn=$WEBSITE_CERT_ARN \
-    Nonce=$(date | base64)
+    EdgeLambdaCode=$(cat src/lambda.js)
 
 BUCKET_NAME=$(aws cloudformation describe-stacks --region us-east-1 --stack-name=$STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='WebsiteS3BucketName'].OutputValue" --output text)
 
