@@ -1,4 +1,4 @@
-# cfn-static-website-with-edge-lambda
+# cfn-static-website-with-lambda-at-edge
 
 Static website hosted from an S3 Bucket delivered via Cloudfront with Lambda@Edge.
 
