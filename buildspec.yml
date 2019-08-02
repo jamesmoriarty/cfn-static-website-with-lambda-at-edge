@@ -2,9 +2,9 @@ version: 0.2
 
 env:
   variables:
-    STACK_NAME: examples-lambdaedge
+    STACK_NAME: examples-lambda-at-edge
     WEBSITE_HOSTED_ZONE: jamesmoriarty.xyz
-    WEBSITE_DOMAIN: lambdaedge.examples.jamesmoriarty.xyz
+    WEBSITE_DOMAIN: lambda-at-edge.examples.jamesmoriarty.xyz
     WEBSITE_CERT_ARN: arn:aws:acm:us-east-1:467230181896:certificate/d61d229a-b07a-484c-bc9a-dce0fc6bfe2a
 
 phases:
